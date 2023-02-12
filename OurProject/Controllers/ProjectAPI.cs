@@ -18,14 +18,16 @@ namespace OurProject.Controllers
         public IActionResult RegisterUser(Register r1)
         {
             string s=_repo.RegisterUser(r1);
-            return Ok(s);
+            JsonResult jsonresult=Json(new { Result = s });
+            return Ok(jsonresult.Value);
         }
         [HttpPost]
         [Route("[Action]")]
         public IActionResult LoginUser(Login l1)
         {
             string s=_repo.LoginUser(l1);
-            return Ok(s);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
         }
         [HttpGet]
         [Route("[Action]")]
@@ -46,7 +48,8 @@ namespace OurProject.Controllers
         public IActionResult InsertMessage(Messages m1)
         {
             string s = _repo.InsertMessage(m1);
-            return Ok(s);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
         }
     }
 }
