@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace OurProject.Model
+﻿namespace OurProject.Model
 {
     public class Register
     {

@@ -36,11 +36,11 @@ namespace OurProject.Controllers
             var val = _repo.Users();
             return Ok(val);
         }
-        [HttpGet]
+        [HttpPost]
         [Route("[Action]")]
-        public IActionResult GetSpecificUser(string Username)
+        public IActionResult GetSpecificUser(Usernameonly u1)
         {
-            var val = _repo.DatafromUserTable(Username);
+            var val = _repo.DatafromUserTable(u1);
             return Ok(val);
         }
         [HttpPost]
@@ -48,6 +48,53 @@ namespace OurProject.Controllers
         public IActionResult InsertMessage(Messages m1)
         {
             string s = _repo.InsertMessage(m1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult UpdateProfile(Changes c1)
+        {
+            string s = _repo.UpdateUsersTable(c1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult UpdateGarbageData(Garbages g1)
+        {
+            var s = _repo.InsertWasteData(g1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpGet]
+        [Route("[Action]")]
+        public IActionResult GetAverage()
+        {
+            var s = _repo.getaverage();
+            return Ok(s);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult CheckEmail(Emailonly e1)
+        {
+            string s = _repo.CheckEmail(e1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult SendEmail(Emailonly e1)
+        {
+            var s = _repo.sendemail(e1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult ResetPassword(ResetPassword p1)
+        {
+            string s = _repo.ResetPassword(p1);
             JsonResult jsonresult = Json(new { Result = s });
             return Ok(jsonresult.Value);
         }

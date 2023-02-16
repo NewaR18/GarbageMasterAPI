@@ -2,6 +2,8 @@
 using System.Data;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
+
 namespace OurProject.Repository
 {
     public class MyRepo : ConnRepo
@@ -98,16 +100,9 @@ namespace OurProject.Repository
             }
             return users;
         }
-        public Users DatafromUserTable(string name)
+        public Users DatafromUserTable(Usernameonly u1)
         {
-            Users s2 = new Model.Users();
-            string fname = "";
-            string mname = "";
-            string lname = "";
-            string email = "";
-            string username = "";
-            string ward = "";
-            string phone = "";
+            Users s2 = new Users();
             using (SqlCommand cmd = new SqlCommand())
             {
                 cmd.CommandType = CommandType.Text;
@@ -116,7 +111,7 @@ namespace OurProject.Repository
                 {
                     cmd.Connection = conn1;
                     cmd.CommandTimeout = 30;
-                    cmd.Parameters.AddWithValue("@name", name);
+                    cmd.Parameters.AddWithValue("@name", u1.Username);
                     using (SqlDataReader sd = cmd.ExecuteReader())
                     {
                         if (sd.HasRows)
@@ -158,6 +153,216 @@ namespace OurProject.Repository
                             while (sd.Read())
                             {
                                 response = sd.GetString(0);
+                            }
+                        }
+                    }
+                }
+            }
+            return response;
+        }
+        public string UpdateUsersTable(Changes c1)
+        {
+            string response = "";
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "UpdateProfile";
+                using (SqlConnection conn1 = Connection())
+                {
+                    cmd.Connection = conn1;
+                    cmd.CommandTimeout = 30;
+                    cmd.Parameters.AddWithValue("@fname", c1.FName);
+                    cmd.Parameters.AddWithValue("@mname", c1.MName);
+                    cmd.Parameters.AddWithValue("@lname", c1.LName);
+                    cmd.Parameters.AddWithValue("@phone", c1.Phone);
+                    cmd.Parameters.AddWithValue("@ward", c1.Ward);
+                    cmd.Parameters.AddWithValue("@name", c1.Username);
+                    using (SqlDataReader sd = cmd.ExecuteReader())
+                    {
+                        if (sd.HasRows)
+                        {
+                            while (sd.Read())
+                            {
+                                response = sd.GetString(0);
+                            }
+                        }
+                    }
+                }
+            }
+            return response;
+        }
+        public string InsertWasteData(Garbages g1)
+        {
+            int n;
+            string response = "";
+            int smallP;
+            if (g1.SP == "")
+            {
+                smallP = 0;
+            }
+            else
+            {
+                smallP = Convert.ToInt32(g1.SP);
+            }
+            int bigP;
+            if (g1.BP == "")
+            {
+                bigP = 0;
+            }
+            else
+            {
+                bigP = Convert.ToInt32(g1.BP);
+            }
+            int dustB;
+            if (g1.DB == "")
+            {
+                dustB = 0;
+            }
+            else
+            {
+                dustB = Convert.ToInt32(g1.DB);
+            }
+            int sackB;
+            if (g1.sack == "")
+            {
+                sackB = 0;
+            }
+            else
+            {
+                sackB = Convert.ToInt32(g1.sack);
+            }
+            if (g1.uname == "")
+            {
+                return "EmptyUsername";
+            }
+            n = smallP * 1 + bigP * 4 + dustB * 6 + sackB * 12;
+            if (n < 1000)
+            {
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "updatewastedata";
+                    using (SqlConnection conn = Connection())
+                    {
+                        cmd.Connection = conn;
+                        cmd.CommandTimeout = 30;
+                        cmd.Parameters.AddWithValue("@username", g1.uname);
+                        cmd.Parameters.AddWithValue("@val", n);
+                        using (SqlDataReader rd = cmd.ExecuteReader())
+                        {
+                            if (rd.HasRows)
+                            {
+                                while (rd.Read())
+                                {
+                                    response = rd.GetString(0);
+                                }
+                            }
+                        }
+                    }
+                }
+                return response;
+            }
+            else
+            {
+                return "spam";
+            }
+        }
+        public Averagewaste getaverage()
+        {
+            int i = 0;
+            List<int> list = new List<int>();
+            Averagewaste avgwaste = new Averagewaste();
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "findaverage";
+                using (SqlConnection conn = Connection())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandTimeout = 30;
+                    using (SqlDataReader rd = cmd.ExecuteReader())
+                    {
+                        if (rd.HasRows)
+                        {
+                            while (rd.Read())
+                            {
+                                list.Add(Convert.ToInt32(rd[0]));
+                            }
+                        }
+                        for (i = 1; i <= 32; i++)
+                        {
+                            avgwaste.GetType().GetProperty("Ward" + i + "Average").SetValue(avgwaste, list[i-1]);
+                        }
+                    }
+                }
+            }
+            return avgwaste;
+        }
+        public string CheckEmail(Emailonly e1)
+        {
+            string response = "";
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "checkforemail";
+                using (SqlConnection conn = Connection())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandTimeout = 30;
+                    cmd.Parameters.Add("@email", SqlDbType.VarChar).Value = e1.Email;
+                    using (SqlDataReader rd = cmd.ExecuteReader())
+                    {
+                        if (rd.HasRows)
+                        {
+                            while (rd.Read())
+                            {
+                                response = rd.GetString(0);
+                            }
+                        }
+                    }
+                }
+            }
+            return response;
+        }
+        public string sendemail(Emailonly e1)
+        {
+            Random r = new Random();
+            var x = r.Next(0, 999999);
+            string s = x.ToString("000000");
+            MailMessage mail = new MailMessage();
+            mail.To.Add(e1.Email);
+            mail.From = new MailAddress("garbagemaster1417@gmail.com");
+            mail.Subject = "Password Reset Code";
+            mail.Body = "Dear User,\r\n\r\nWe have received a request to reset your password for your account with us. To proceed, please enter the following 6-digit code to confirm your identity:" + s + ".\r\n\r\nIf you did not make this request, please ignore this email and your password will remain unchanged.\r\n\r\nThank you for using our services.\r\n\r\nBest regards,\r\nGarbage Master";
+            SmtpClient smtp = new SmtpClient();
+            smtp.Host = "smtp.gmail.com";
+            smtp.Port = 587;
+            smtp.UseDefaultCredentials = false;
+            smtp.Credentials = new System.Net.NetworkCredential("garbagemaster1417@gmail.com", "auzclswhmxclllpr");
+            smtp.EnableSsl = true;
+            smtp.Send(mail);
+            return s;
+        }
+        public string ResetPassword(ResetPassword p1)
+        {
+            string response = "";
+            using (SqlCommand cmd = new SqlCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "resetpassword";
+                using (SqlConnection conn = Connection())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandTimeout = 30;
+                    cmd.Parameters.Add("@email", SqlDbType.VarChar).Value = p1.Email;
+                    cmd.Parameters.Add("@password", SqlDbType.VarChar).Value = p1.Password;
+                    using (SqlDataReader rd = cmd.ExecuteReader())
+                    {
+                        if (rd.HasRows)
+                        {
+                            while (rd.Read())
+                            {
+                                response = rd.GetString(0);
                             }
                         }
                     }
