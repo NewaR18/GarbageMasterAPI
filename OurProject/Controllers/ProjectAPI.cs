@@ -98,5 +98,28 @@ namespace OurProject.Controllers
             JsonResult jsonresult = Json(new { Result = s });
             return Ok(jsonresult.Value);
         }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult HistoryTable(Usernameonly u1)
+        {
+            var s = _repo.Extractdata(u1);
+            return Ok(s);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult GetImage(Usernameonly u1)
+        {
+            string s = _repo.GetImage(u1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult InsertImage(UsernameAndImage u1)
+        {
+            string s = _repo.InsertImage(u1);
+            JsonResult jsonresult = Json(new { Result = s });
+            return Ok(jsonresult.Value);
+        }
     }
 }

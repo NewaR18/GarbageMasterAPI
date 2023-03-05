@@ -370,5 +370,95 @@ namespace OurProject.Repository
             }
             return response;
         }
+        public IEnumerable<WasteHistory> Extractdata(Usernameonly u1)
+        {
+            List<WasteHistory> wastehistoryList = new List<WasteHistory>();
+            using (SqlConnection conn = Connection())
+            {
+                using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "GetWasteHiistory";
+                    cmd.Connection = conn;
+                    cmd.CommandTimeout = 30;
+                    cmd.Parameters.Add("@username", SqlDbType.VarChar).Value = u1.Username;
+                    using (SqlDataReader rd = cmd.ExecuteReader())
+                    {
+                        if (rd.HasRows)
+                        {
+                            while (rd.Read())
+                            {
+                                WasteHistory wh = new WasteHistory();
+                                wh.Username = Convert.ToString(rd["UsernameWH"]);
+                                wh.Waste = Convert.ToString(rd["Waste_Data_History"]);
+                                wh.Ward = Convert.ToInt32(rd["WardNoWH"]);
+                                wh.Date = Convert.ToString(rd["DateReviewedWH"]);
+                                wastehistoryList.Add(wh);
+                            }
+                        }
+                    }
+                }
+            }
+            return wastehistoryList;
+        }
+        public string GetImage(Usernameonly u1)
+        {
+            string sql = "Select[Image] from ExtraUserData where Username = @ImageID";
+            string myimage = "";
+            using (SqlConnection conn = Connection())
+            {
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ImageID", u1.Username);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            byte[] imageData = (byte[])reader["Image"];
+                            using (MemoryStream ms = new MemoryStream(imageData, 0, imageData.Length))
+                            {
+                                ms.Write(imageData, 0, imageData.Length);
+                                myimage = "data:image/png;base64," + Convert.ToBase64String(imageData);
+                            }
+                        }
+                    }
+                }
+            }
+            return myimage;
+        }
+        public string InsertImage(UsernameAndImage u1)
+        {
+            string name = u1.Name;
+            string image = u1.Image;
+            string response = "";
+            byte[] imageBytes = Convert.FromBase64String(image.Split(',')[1]);
+            SqlConnection con = Connection();
+            try
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "insert_img";
+                cmd.Parameters.Add("@uname", SqlDbType.VarChar).Value = name;
+                cmd.Parameters.Add("@img", SqlDbType.Image).Value = imageBytes;
+                cmd.Connection = con;
+                using(SqlDataReader rd = cmd.ExecuteReader())
+                {
+                    if (rd.HasRows)
+                    {
+                        while (rd.Read())
+                        {
+                            response = rd.GetString(0);
+                        }
+                    }
+                }
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return response;
+        }
     }
 }
